@@ -26,9 +26,9 @@ RegisterNetEvent('chilllixhub-parkinglift:server:activateLift', function(liftId,
     -- Sync movement to all nearby players
     TriggerClientEvent('chilllixhub-parkinglift:client:syncMovement', -1, liftId, currentCoords, targetZ, speed)
     
-    -- Calculate total cycle time
+    -- Calculate total cycle time (down + delay + up)
     local downDistance = math.abs(currentCoords.z - targetZ)
-    local movementTime = (downDistance / speed) * 10
+    local movementTime = (downDistance / speed) * Config.MovementTimeMultiplier
     local totalCycleTime = (movementTime * 2) + returnDelay
     
     -- Clear active status after cycle completes
@@ -59,7 +59,7 @@ end)
 
 -- Callback to check if lift is active (optional, for future use)
 QBCore.Functions.CreateCallback('chilllixhub-parkinglift:server:isLiftActive', function(source, cb, liftId)
-    cb(activeLiftSessions[liftId] ~= nil)
+    cb(activeLiftSessions[liftId] == true)
 end)
 
 -- Initialize

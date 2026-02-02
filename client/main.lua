@@ -84,7 +84,8 @@ local function MovePlatformVertically(platform, targetZ, speed, vehicles)
                 for _, vehicle in ipairs(vehicles) do
                     if DoesEntityExist(vehicle) then
                         local vehCoords = GetEntityCoords(vehicle)
-                        SetEntityCoords(vehicle, vehCoords.x, vehCoords.y, newZ + 1.0, false, false, false, false)
+                        -- Apply vertical offset to keep vehicle on top of platform
+                        SetEntityCoords(vehicle, vehCoords.x, vehCoords.y, newZ + Config.VehiclePlatformOffset, false, false, false, false)
                     end
                 end
             end
@@ -131,8 +132,8 @@ local function ActivateLift(liftId, liftConfig)
     -- Move platform down
     MovePlatformVertically(platform, targetZ, liftConfig.movement.speed, vehicles)
     
-    -- Wait for platform to reach bottom
-    local movementTime = (liftConfig.movement.downDistance / liftConfig.movement.speed) * 10
+    -- Wait for platform to reach bottom (calculate based on distance and speed)
+    local movementTime = (liftConfig.movement.downDistance / liftConfig.movement.speed) * Config.MovementTimeMultiplier
     Wait(movementTime)
     
     -- Delete vehicles (simulate storage)
@@ -233,7 +234,7 @@ end)
 -- Initialize lifts
 CreateThread(function()
     -- Wait for QBCore to load
-    Wait(1000)
+    Wait(Config.InitializationDelay)
     
     DebugPrint('Initializing parking lifts...')
     
