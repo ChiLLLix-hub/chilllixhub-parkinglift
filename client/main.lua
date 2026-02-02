@@ -125,8 +125,8 @@ local function ActivateLift(liftId, liftConfig)
     
     QBCore.Functions.Notify('Parking lift activated', 'success')
     
-    -- Trigger server event to sync movement
-    TriggerServerEvent('chilllixhub-parkinglift:server:activateLift', liftId, currentCoords, targetZ, 
+    -- Trigger server event to sync movement (server validates and broadcasts to all clients)
+    TriggerServerEvent('chilllixhub-parkinglift:server:activateLift', liftId, nil, nil, 
                        liftConfig.movement.speed, liftConfig.movement.returnDelay)
     
     -- Move platform down

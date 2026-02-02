@@ -14,6 +14,20 @@ local activeLiftSessions = {}
 RegisterNetEvent('chilllixhub-parkinglift:server:activateLift', function(liftId, currentCoords, targetZ, speed, returnDelay)
     local src = source
     
+    -- Validate lift ID
+    if not liftId or not Config.Lifts[liftId] then
+        DebugPrint('Invalid lift ID from player', src)
+        return
+    end
+    
+    local liftConfig = Config.Lifts[liftId]
+    
+    -- Validate parameters against config to prevent client-side manipulation
+    if speed ~= liftConfig.movement.speed or returnDelay ~= liftConfig.movement.returnDelay then
+        DebugPrint('Parameter mismatch for lift', liftId, 'from player', src)
+        return
+    end
+    
     -- Prevent duplicate activations
     if activeLiftSessions[liftId] then
         DebugPrint('Lift', liftId, 'is already active')
@@ -23,13 +37,17 @@ RegisterNetEvent('chilllixhub-parkinglift:server:activateLift', function(liftId,
     activeLiftSessions[liftId] = true
     DebugPrint('Player', src, 'activated lift', liftId)
     
-    -- Sync movement to all nearby players
-    TriggerClientEvent('chilllixhub-parkinglift:client:syncMovement', -1, liftId, currentCoords, targetZ, speed)
+    -- Use server-side config values for synchronization (not client-provided values)
+    local serverTargetZ = liftConfig.platform.coords.z - liftConfig.movement.downDistance
+    
+    -- Sync movement to all nearby players using server-validated values
+    TriggerClientEvent('chilllixhub-parkinglift:client:syncMovement', -1, liftId, liftConfig.platform.coords, 
+                       serverTargetZ, liftConfig.movement.speed)
     
     -- Calculate total cycle time (down + delay + up)
-    local downDistance = math.abs(currentCoords.z - targetZ)
-    local movementTime = (downDistance / speed) * Config.MovementTimeMultiplier
-    local totalCycleTime = (movementTime * 2) + returnDelay
+    local downDistance = liftConfig.movement.downDistance
+    local movementTime = (downDistance / liftConfig.movement.speed) * Config.MovementTimeMultiplier
+    local totalCycleTime = (movementTime * 2) + liftConfig.movement.returnDelay
     
     -- Clear active status after cycle completes
     SetTimeout(totalCycleTime, function()
