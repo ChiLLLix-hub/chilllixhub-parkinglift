@@ -2,6 +2,9 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local lifts = {}
 local isLiftActive = {}
 
+-- Configuration validation constants
+local MAX_VEHICLE_ZONE_DISTANCE = 10.0 -- Maximum allowed distance between platform and vehicleZone coords
+
 -- Debug print function
 local function DebugPrint(...)
     if Config.Debug then
@@ -19,8 +22,8 @@ local function ValidateLiftConfig(liftId, liftConfig)
     -- #(vector1 - vector2) calculates the Euclidean distance between two vectors
     local distance = #(platformCoords - vehicleZoneCoords)
     
-    -- If coords are more than 10 units apart, show warning
-    if distance > 10.0 then
+    -- If coords are more than the allowed distance apart, show warning
+    if distance > MAX_VEHICLE_ZONE_DISTANCE then
         print(string.format('^1[Parking Lift ERROR]^7 Lift %d: vehicleZone.coords is %.1f units away from platform.coords!', 
                            liftId, distance))
         print(string.format('^1[Parking Lift ERROR]^7 Platform coords: %.1f, %.1f, %.1f', 
