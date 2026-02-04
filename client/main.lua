@@ -163,9 +163,9 @@ local function ActivateLift(liftId, liftConfig)
                 -- 3: boneIndex (0 for props)
                 -- 4-6: position offset (x,y,z)
                 -- 7-9: rotation offset (x,y,z) - all 0.0 for no rotation
-                -- 10: p9 (unknown) - false
+                -- 10: p9 (soft pinning related) - false
                 -- 11: useSoftPinning - false (we want rigid attachment)
-                -- 12: collision - true (controls parent-child collision, not entity's own collision state)
+                -- 12: collision - true (enables collision between vehicle and platform during attachment)
                 -- 13: isPed - false (it's a vehicle)
                 -- 14: vertexIndex - 0 (not used)
                 -- 15: fixedRot - true (maintain vehicle's orientation)
@@ -198,7 +198,8 @@ local function ActivateLift(liftId, liftConfig)
             -- Detach and restore vehicle state before deletion
             if Config.DisableVehicleCollisionDuringMovement then
                 -- DetachEntity(entity, dynamic, collision)
-                -- dynamic=false: don't apply velocity, collision=false: don't reset collision
+                -- dynamic=false: don't inherit platform velocity
+                -- collision=false: don't auto-reset collision (we handle explicitly with SetEntityCollision)
                 DetachEntity(vehicle, false, false)
                 -- Explicitly re-enable collision (both parameters true for full collision restoration)
                 SetEntityCollision(vehicle, true, true)
