@@ -165,7 +165,7 @@ local function ActivateLift(liftId, liftConfig)
                 -- 7-9: rotation offset (x,y,z) - all 0.0 for no rotation
                 -- 10: p9 (unknown) - false
                 -- 11: useSoftPinning - false (we want rigid attachment)
-                -- 12: collision - true (allows collision inheritance, separate from entity's own collision state)
+                -- 12: collision - true (controls parent-child collision, not entity's own collision state)
                 -- 13: isPed - false (it's a vehicle)
                 -- 14: vertexIndex - 0 (not used)
                 -- 15: fixedRot - true (maintain vehicle's orientation)
@@ -197,7 +197,8 @@ local function ActivateLift(liftId, liftConfig)
         if DoesEntityExist(vehicle) then
             -- Detach and restore vehicle state before deletion
             if Config.DisableVehicleCollisionDuringMovement then
-                -- Detach from platform (false: don't reset collision here, false: don't apply velocity)
+                -- DetachEntity(entity, dynamic, collision)
+                -- dynamic=false: don't apply velocity, collision=false: don't reset collision
                 DetachEntity(vehicle, false, false)
                 -- Explicitly re-enable collision (both parameters true for full collision restoration)
                 SetEntityCollision(vehicle, true, true)
