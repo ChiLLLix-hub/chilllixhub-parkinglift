@@ -148,6 +148,7 @@ local function ActivateLift(liftId, liftConfig)
     DebugPrint('Activating lift', liftId, 'with', #vehicles, 'vehicles')
     
     -- Prepare vehicles for underground movement (prevent slingshot effect)
+    -- Note: Vehicles will be deleted after reaching the bottom, so collision/freeze states don't need restoration
     if Config.DisableVehicleCollisionDuringMovement then
         for _, vehicle in ipairs(vehicles) do
             if DoesEntityExist(vehicle) then
@@ -180,6 +181,12 @@ local function ActivateLift(liftId, liftConfig)
     -- Delete vehicles (simulate storage)
     for _, vehicle in ipairs(vehicles) do
         if DoesEntityExist(vehicle) then
+            -- Restore vehicle state before deletion (safety measure in case deletion fails)
+            if Config.DisableVehicleCollisionDuringMovement then
+                SetEntityCollision(vehicle, true, true)
+                FreezeEntityPosition(vehicle, false)
+            end
+            
             local vehicleNetId = NetworkGetNetworkIdFromEntity(vehicle)
             TriggerServerEvent('chilllixhub-parkinglift:server:deleteVehicle', vehicleNetId)
             DebugPrint('Requesting deletion for vehicle:', vehicle)
