@@ -15,8 +15,7 @@ local function ValidateLiftConfig(liftId, liftConfig)
     local platformCoords = liftConfig.platform.coords
     local vehicleZoneCoords = liftConfig.vehicleZone.coords
     
-    local distance = #(vector3(platformCoords.x, platformCoords.y, platformCoords.z) - 
-                       vector3(vehicleZoneCoords.x, vehicleZoneCoords.y, vehicleZoneCoords.z))
+    local distance = #(platformCoords - vehicleZoneCoords)
     
     -- If coords are more than 10 units apart, show warning
     if distance > 10.0 then
