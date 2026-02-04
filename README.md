@@ -78,7 +78,7 @@ The coordinates must be within **10 units** of each other for vehicle detection 
 - ❌ **Wrong**: Different coordinates will cause "No vehicle detected" errors
   ```lua
   platform = { coords = vector3(100.0, 200.0, 30.0) }
-  vehicleZone = { coords = vector3(-160.0, -583.0, 32.42) }  -- Default coords, 1000+ units away!
+  vehicleZone = { coords = vector3(-160.0, -583.0, 32.42) }  -- Default coords, far away!
   ```
 
 The script will display a **red error message** on startup if your vehicleZone is more than 10 units away from the platform.

@@ -15,7 +15,8 @@ local function ValidateLiftConfig(liftId, liftConfig)
     local platformCoords = liftConfig.platform.coords
     local vehicleZoneCoords = liftConfig.vehicleZone.coords
     
-    -- Calculate distance between vectors (Euclidean distance)
+    -- Calculate distance between vectors using FiveM's vector magnitude operator
+    -- #(vector1 - vector2) calculates the Euclidean distance between two vectors
     local distance = #(platformCoords - vehicleZoneCoords)
     
     -- If coords are more than 10 units apart, show warning
