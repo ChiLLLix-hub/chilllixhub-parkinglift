@@ -150,10 +150,18 @@ local function ActivateLift(liftId, liftConfig)
                 -- This ensures perfect synchronization and prevents slingshot effect
                 local vehCoords = GetEntityCoords(vehicle)
                 local platformCoords = GetEntityCoords(platform)
+                
+                -- Calculate pure relative position offset (no additional adjustment needed)
                 local offsetX = vehCoords.x - platformCoords.x
                 local offsetY = vehCoords.y - platformCoords.y
-                local offsetZ = vehCoords.z - platformCoords.z + Config.VehiclePlatformOffset
+                local offsetZ = vehCoords.z - platformCoords.z
                 
+                -- AttachEntityToEntity parameters:
+                -- vehicle: entity to attach, platform: attach to, 0: bone (unused for props)
+                -- offsetX/Y/Z: relative position, 0.0/0.0/0.0: no rotation
+                -- false: not physical, false: no collision override (already disabled)
+                -- true: soft pinning (maintains relative position smoothly)
+                -- false: fixed rotation off, 0: entity type, true: ensure proper attachment
                 AttachEntityToEntity(vehicle, platform, 0, offsetX, offsetY, offsetZ, 0.0, 0.0, 0.0, false, false, true, false, 0, true)
                 DebugPrint('Attached vehicle to platform:', vehicle)
             end
