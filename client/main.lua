@@ -19,12 +19,12 @@ local function ValidateLiftConfig(liftId, liftConfig)
     
     -- If coords are more than 10 units apart, show warning
     if distance > 10.0 then
-        print('^1[Parking Lift ERROR]^7 Lift ' .. liftId .. ': vehicleZone.coords is ' .. 
-              string.format('%.1f', distance) .. ' units away from platform.coords!')
-        print('^1[Parking Lift ERROR]^7 Platform coords: ' .. 
-              string.format('%.1f, %.1f, %.1f', platformCoords.x, platformCoords.y, platformCoords.z))
-        print('^1[Parking Lift ERROR]^7 VehicleZone coords: ' .. 
-              string.format('%.1f, %.1f, %.1f', vehicleZoneCoords.x, vehicleZoneCoords.y, vehicleZoneCoords.z))
+        print(string.format('^1[Parking Lift ERROR]^7 Lift %d: vehicleZone.coords is %.1f units away from platform.coords!', 
+                           liftId, distance))
+        print(string.format('^1[Parking Lift ERROR]^7 Platform coords: %.1f, %.1f, %.1f', 
+                           platformCoords.x, platformCoords.y, platformCoords.z))
+        print(string.format('^1[Parking Lift ERROR]^7 VehicleZone coords: %.1f, %.1f, %.1f', 
+                           vehicleZoneCoords.x, vehicleZoneCoords.y, vehicleZoneCoords.z))
         print('^1[Parking Lift ERROR]^7 Vehicle detection will NOT work! Update vehicleZone.coords to match platform.coords')
         return false
     end

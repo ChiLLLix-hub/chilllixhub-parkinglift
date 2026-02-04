@@ -69,13 +69,13 @@ Config.Lifts = {
 
 - ✅ **Correct**: Both platform and vehicleZone at the same location
   ```lua
-  platform = { coords = vector3(1526.5, 6343.4, 22.93) }
-  vehicleZone = { coords = vector3(1526.5, 6343.4, 22.93) }
+  platform = { coords = vector3(100.0, 200.0, 30.0) }
+  vehicleZone = { coords = vector3(100.0, 200.0, 30.0) }
   ```
 
 - ❌ **Wrong**: Different coordinates will cause "No vehicle detected" errors
   ```lua
-  platform = { coords = vector3(1526.5, 6343.4, 22.93) }
+  platform = { coords = vector3(100.0, 200.0, 30.0) }
   vehicleZone = { coords = vector3(-160.0, -583.0, 32.42) }  -- Default coords!
   ```
 
