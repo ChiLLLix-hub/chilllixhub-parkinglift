@@ -147,6 +147,19 @@ local function ActivateLift(liftId, liftConfig)
     isLiftActive[liftId] = true
     DebugPrint('Activating lift', liftId, 'with', #vehicles, 'vehicles')
     
+    -- Prepare vehicles for underground movement (prevent slingshot effect)
+    if Config.DisableVehicleCollisionDuringMovement then
+        for _, vehicle in ipairs(vehicles) do
+            if DoesEntityExist(vehicle) then
+                -- Disable collision to prevent physics from pushing vehicle back up
+                SetEntityCollision(vehicle, false, false)
+                -- Freeze the vehicle to prevent it from moving on its own
+                FreezeEntityPosition(vehicle, true)
+                DebugPrint('Prepared vehicle for movement:', vehicle)
+            end
+        end
+    end
+    
     -- Get current and target positions
     local currentCoords = GetEntityCoords(platform)
     local targetZ = currentCoords.z - liftConfig.movement.downDistance
