@@ -58,5 +58,5 @@ Config.Debug = false
 -- Technical settings (advanced users)
 Config.MovementTimeMultiplier = 10 -- Multiplier for calculating movement duration based on speed
 Config.VehiclePlatformOffset = 1.0 -- Vertical offset for vehicles on platform (in units)
-Config.DisableVehicleCollisionDuringMovement = true -- Disable collision to prevent slingshot effect when going underground
+Config.DisableVehicleCollisionDuringMovement = true -- Attach vehicles to platform and disable collision for smooth underground movement
 Config.InitializationDelay = 1000 -- Delay before initializing lifts (milliseconds)

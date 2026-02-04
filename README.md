@@ -8,6 +8,7 @@ A QBCore FiveM script that creates movable platform lifts for automatic parking 
 - ✅ Configurable movement speed and distance
 - ✅ Vehicle detection on platform
 - ✅ Automatic vehicle deletion (simulates storage)
+- ✅ Vehicle attachment system (vehicles physically attached to platform for perfect synchronization)
 - ✅ Collision-free vehicle movement (prevents slingshot effect underground)
 - ✅ Synchronized movement across all clients
 - ✅ Multiple lift support
@@ -146,10 +147,11 @@ Config.Lifts = {
   - Check the console for red error messages on startup - they will show the mismatch
   - Solution: Update `vehicleZone.coords` to match your `platform.coords` exactly
   - If coords are correct, try increasing `vehicleZone.radius` (default: 4.0, try 5.0-6.0)
-- **Vehicles slingshot into air when going underground**:
+- **Vehicles slingshot into air or don't follow platform underground**:
   - This is caused by collision between vehicle and ground when forced underground
   - Solution: Ensure `Config.DisableVehicleCollisionDuringMovement = true` in config.lua (default)
-  - This disables vehicle collision and freezes them during platform movement to prevent physics issues
+  - The system attaches vehicles to the platform entity for perfect synchronization
+  - Vehicles are detached and collision is restored before deletion
 - **Movement too fast/slow**: Adjust movement speed in config
 
 ## Support

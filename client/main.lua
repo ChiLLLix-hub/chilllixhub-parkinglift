@@ -83,7 +83,7 @@ local function GetVehiclesOnPlatform(liftConfig)
 end
 
 -- Smooth movement function
-local function MovePlatformVertically(platform, targetZ, speed, vehicles)
+local function MovePlatformVertically(platform, targetZ, speed, vehicles, attachedVehicles)
     local currentCoords = GetEntityCoords(platform)
     local direction = targetZ > currentCoords.z and 1 or -1
     local isMovingDown = direction == -1
@@ -107,16 +107,8 @@ local function MovePlatformVertically(platform, targetZ, speed, vehicles)
             
             SetEntityCoords(platform, coords.x, coords.y, newZ, false, false, false, false)
             
-            -- Move vehicles with platform
-            if vehicles and #vehicles > 0 then
-                for _, vehicle in ipairs(vehicles) do
-                    if DoesEntityExist(vehicle) then
-                        local vehCoords = GetEntityCoords(vehicle)
-                        -- Apply vertical offset to keep vehicle on top of platform
-                        SetEntityCoords(vehicle, vehCoords.x, vehCoords.y, newZ + Config.VehiclePlatformOffset, false, false, false, false)
-                    end
-                end
-            end
+            -- Note: Vehicles are now attached to platform, so they move automatically
+            -- No need to manually update vehicle coords
             
             Wait(0)
         end
@@ -147,16 +139,23 @@ local function ActivateLift(liftId, liftConfig)
     isLiftActive[liftId] = true
     DebugPrint('Activating lift', liftId, 'with', #vehicles, 'vehicles')
     
-    -- Prepare vehicles for underground movement (prevent slingshot effect)
-    -- Vehicles are frozen and collision-disabled during movement, then restored before deletion
+    -- Attach vehicles to platform for synchronized movement (prevent slingshot effect)
     if Config.DisableVehicleCollisionDuringMovement then
         for _, vehicle in ipairs(vehicles) do
             if DoesEntityExist(vehicle) then
                 -- Disable collision to prevent physics from pushing vehicle back up
                 SetEntityCollision(vehicle, false, false)
-                -- Freeze the vehicle to prevent it from moving on its own
-                FreezeEntityPosition(vehicle, true)
-                DebugPrint('Prepared vehicle for movement:', vehicle)
+                
+                -- Attach vehicle to platform so it moves automatically with the platform
+                -- This ensures perfect synchronization and prevents slingshot effect
+                local vehCoords = GetEntityCoords(vehicle)
+                local platformCoords = GetEntityCoords(platform)
+                local offsetX = vehCoords.x - platformCoords.x
+                local offsetY = vehCoords.y - platformCoords.y
+                local offsetZ = vehCoords.z - platformCoords.z + Config.VehiclePlatformOffset
+                
+                AttachEntityToEntity(vehicle, platform, 0, offsetX, offsetY, offsetZ, 0.0, 0.0, 0.0, false, false, true, false, 0, true)
+                DebugPrint('Attached vehicle to platform:', vehicle)
             end
         end
     end
@@ -171,8 +170,8 @@ local function ActivateLift(liftId, liftConfig)
     TriggerServerEvent('chilllixhub-parkinglift:server:activateLift', liftId, nil, nil, 
                        liftConfig.movement.speed, liftConfig.movement.returnDelay)
     
-    -- Move platform down
-    MovePlatformVertically(platform, targetZ, liftConfig.movement.speed, vehicles)
+    -- Move platform down (attached vehicles will move automatically)
+    MovePlatformVertically(platform, targetZ, liftConfig.movement.speed, vehicles, true)
     
     -- Wait for platform to reach bottom (calculate based on distance and speed)
     local movementTime = (liftConfig.movement.downDistance / liftConfig.movement.speed) * Config.MovementTimeMultiplier
@@ -181,12 +180,12 @@ local function ActivateLift(liftId, liftConfig)
     -- Delete vehicles (simulate storage)
     for _, vehicle in ipairs(vehicles) do
         if DoesEntityExist(vehicle) then
-            -- Restore vehicle state before deletion (safety measure in case deletion fails)
+            -- Detach and restore vehicle state before deletion
             if Config.DisableVehicleCollisionDuringMovement then
+                -- Detach from platform
+                DetachEntity(vehicle, true, true)
                 -- Re-enable collision (both parameters true to ensure full collision restoration)
                 SetEntityCollision(vehicle, true, true)
-                -- Unfreeze the vehicle
-                FreezeEntityPosition(vehicle, false)
             end
             
             local vehicleNetId = NetworkGetNetworkIdFromEntity(vehicle)
