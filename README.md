@@ -65,21 +65,23 @@ Config.Lifts = {
 
 ### ⚠️ Important Configuration Notes
 
-**Vehicle Detection Zone**: The `vehicleZone.coords` **MUST** match your `platform.coords`! This is the most common configuration mistake.
+**Vehicle Detection Zone**: The `vehicleZone.coords` should match (or be very close to) your `platform.coords`! This is the most common configuration mistake.
+
+The coordinates must be within **10 units** of each other for vehicle detection to work properly. Ideally, use the exact same coordinates.
 
 - ✅ **Correct**: Both platform and vehicleZone at the same location
   ```lua
   platform = { coords = vector3(100.0, 200.0, 30.0) }
-  vehicleZone = { coords = vector3(100.0, 200.0, 30.0) }
+  vehicleZone = { coords = vector3(100.0, 200.0, 30.0) }  -- Same coords
   ```
 
 - ❌ **Wrong**: Different coordinates will cause "No vehicle detected" errors
   ```lua
   platform = { coords = vector3(100.0, 200.0, 30.0) }
-  vehicleZone = { coords = vector3(-160.0, -583.0, 32.42) }  -- Default coords!
+  vehicleZone = { coords = vector3(-160.0, -583.0, 32.42) }  -- Default coords, 1000+ units away!
   ```
 
-The script will display a **red error message** on startup if your vehicleZone is misconfigured.
+The script will display a **red error message** on startup if your vehicleZone is more than 10 units away from the platform.
 
 ## Usage
 
