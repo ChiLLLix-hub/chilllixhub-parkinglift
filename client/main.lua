@@ -268,7 +268,7 @@ CreateThread(function()
     
     -- Create all lift platforms
     for liftId, liftConfig in pairs(Config.Lifts) do
-        -- Validate configuration
+        -- Validate configuration (will show errors but still create lift for debugging)
         ValidateLiftConfig(liftId, liftConfig)
         
         lifts[liftId] = CreatePlatform(liftId, liftConfig)

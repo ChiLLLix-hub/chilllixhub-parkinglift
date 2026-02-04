@@ -67,7 +67,7 @@ Config.Lifts = {
 
 **Vehicle Detection Zone**: The `vehicleZone.coords` should match (or be very close to) your `platform.coords`! This is the most common configuration mistake.
 
-The coordinates must be within **10 units** of each other for vehicle detection to work properly. Ideally, use the exact same coordinates.
+For best results, **use the exact same coordinates** for both. The system allows up to **10 units** of difference as a tolerance, but exact matching is recommended to ensure reliable vehicle detection.
 
 - ✅ **Correct**: Both platform and vehicleZone at the same location
   ```lua
