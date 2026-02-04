@@ -2,11 +2,39 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local lifts = {}
 local isLiftActive = {}
 
+-- Configuration validation constants
+local MAX_VEHICLE_ZONE_DISTANCE = 10.0 -- Maximum allowed distance between platform and vehicleZone coords
+
 -- Debug print function
 local function DebugPrint(...)
     if Config.Debug then
         print('^3[Parking Lift]^7', ...)
     end
+end
+
+-- Validate lift configuration
+local function ValidateLiftConfig(liftId, liftConfig)
+    -- Check if vehicleZone coords match platform coords
+    local platformCoords = liftConfig.platform.coords
+    local vehicleZoneCoords = liftConfig.vehicleZone.coords
+    
+    -- Calculate distance between vectors using FiveM's vector magnitude operator
+    -- #(vector1 - vector2) calculates the Euclidean distance between two vectors
+    local distance = #(platformCoords - vehicleZoneCoords)
+    
+    -- If coords are more than the allowed distance apart, show warning
+    if distance > MAX_VEHICLE_ZONE_DISTANCE then
+        print(string.format('^1[Parking Lift ERROR]^7 Lift %d: vehicleZone.coords is %.1f units away from platform.coords!', 
+                           liftId, distance))
+        print(string.format('^1[Parking Lift ERROR]^7 Platform coords: %.1f, %.1f, %.1f', 
+                           platformCoords.x, platformCoords.y, platformCoords.z))
+        print(string.format('^1[Parking Lift ERROR]^7 VehicleZone coords: %.1f, %.1f, %.1f', 
+                           vehicleZoneCoords.x, vehicleZoneCoords.y, vehicleZoneCoords.z))
+        print('^1[Parking Lift ERROR]^7 Vehicle detection will NOT work! Update vehicleZone.coords to match platform.coords')
+        return false
+    end
+    
+    return true
 end
 
 -- Create platform object
@@ -55,7 +83,7 @@ local function GetVehiclesOnPlatform(liftConfig)
 end
 
 -- Smooth movement function
-local function MovePlatformVertically(platform, targetZ, speed, vehicles)
+local function MovePlatformVertically(platform, targetZ, speed)
     local currentCoords = GetEntityCoords(platform)
     local direction = targetZ > currentCoords.z and 1 or -1
     local isMovingDown = direction == -1
@@ -79,16 +107,8 @@ local function MovePlatformVertically(platform, targetZ, speed, vehicles)
             
             SetEntityCoords(platform, coords.x, coords.y, newZ, false, false, false, false)
             
-            -- Move vehicles with platform
-            if vehicles and #vehicles > 0 then
-                for _, vehicle in ipairs(vehicles) do
-                    if DoesEntityExist(vehicle) then
-                        local vehCoords = GetEntityCoords(vehicle)
-                        -- Apply vertical offset to keep vehicle on top of platform
-                        SetEntityCoords(vehicle, vehCoords.x, vehCoords.y, newZ + Config.VehiclePlatformOffset, false, false, false, false)
-                    end
-                end
-            end
+            -- Note: Vehicles are attached to platform and move automatically
+            -- No need to manually update vehicle coords
             
             Wait(0)
         end
@@ -119,6 +139,42 @@ local function ActivateLift(liftId, liftConfig)
     isLiftActive[liftId] = true
     DebugPrint('Activating lift', liftId, 'with', #vehicles, 'vehicles')
     
+    -- Attach vehicles to platform for synchronized movement (prevent slingshot effect)
+    if Config.DisableVehicleCollisionDuringMovement then
+        for _, vehicle in ipairs(vehicles) do
+            if DoesEntityExist(vehicle) then
+                -- Disable collision to prevent physics from pushing vehicle back up
+                SetEntityCollision(vehicle, false, false)
+                
+                -- Attach vehicle to platform so it moves automatically with the platform
+                -- This ensures perfect synchronization and prevents slingshot effect
+                local vehCoords = GetEntityCoords(vehicle)
+                local platformCoords = GetEntityCoords(platform)
+                
+                -- Calculate pure relative position offset (maintains current position)
+                -- Since vehicle is already on the platform when detected, this preserves that relationship
+                local offsetX = vehCoords.x - platformCoords.x
+                local offsetY = vehCoords.y - platformCoords.y
+                local offsetZ = vehCoords.z - platformCoords.z
+                -- Note: Config.VehiclePlatformOffset is not needed here as we preserve the existing position
+                
+                -- AttachEntityToEntity native parameters (15 total):
+                -- 1-2: vehicle (attach), platform (attach to)
+                -- 3: boneIndex (0 for props)
+                -- 4-6: position offset (x,y,z)
+                -- 7-9: rotation offset (x,y,z) - all 0.0 for no rotation
+                -- 10: p9 (soft pinning related) - false
+                -- 11: useSoftPinning - false (we want rigid attachment)
+                -- 12: collision - true (enables collision between vehicle and platform during attachment)
+                -- 13: isPed - false (it's a vehicle)
+                -- 14: vertexIndex - 0 (not used)
+                -- 15: fixedRot - true (maintain vehicle's orientation)
+                AttachEntityToEntity(vehicle, platform, 0, offsetX, offsetY, offsetZ, 0.0, 0.0, 0.0, false, false, true, false, 0, true)
+                DebugPrint('Attached vehicle to platform:', vehicle)
+            end
+        end
+    end
+    
     -- Get current and target positions
     local currentCoords = GetEntityCoords(platform)
     local targetZ = currentCoords.z - liftConfig.movement.downDistance
@@ -129,8 +185,8 @@ local function ActivateLift(liftId, liftConfig)
     TriggerServerEvent('chilllixhub-parkinglift:server:activateLift', liftId, nil, nil, 
                        liftConfig.movement.speed, liftConfig.movement.returnDelay)
     
-    -- Move platform down
-    MovePlatformVertically(platform, targetZ, liftConfig.movement.speed, vehicles)
+    -- Move platform down (attached vehicles will move automatically)
+    MovePlatformVertically(platform, targetZ, liftConfig.movement.speed)
     
     -- Wait for platform to reach bottom (calculate based on distance and speed)
     local movementTime = (liftConfig.movement.downDistance / liftConfig.movement.speed) * Config.MovementTimeMultiplier
@@ -139,6 +195,16 @@ local function ActivateLift(liftId, liftConfig)
     -- Delete vehicles (simulate storage)
     for _, vehicle in ipairs(vehicles) do
         if DoesEntityExist(vehicle) then
+            -- Detach and restore vehicle state before deletion
+            if Config.DisableVehicleCollisionDuringMovement then
+                -- DetachEntity(entity, dynamic, collision)
+                -- dynamic=false: don't inherit platform velocity
+                -- collision=false: don't auto-reset collision (we handle explicitly with SetEntityCollision)
+                DetachEntity(vehicle, false, false)
+                -- Explicitly re-enable collision (both parameters true for full collision restoration)
+                SetEntityCollision(vehicle, true, true)
+            end
+            
             local vehicleNetId = NetworkGetNetworkIdFromEntity(vehicle)
             TriggerServerEvent('chilllixhub-parkinglift:server:deleteVehicle', vehicleNetId)
             DebugPrint('Requesting deletion for vehicle:', vehicle)
@@ -150,7 +216,7 @@ local function ActivateLift(liftId, liftConfig)
     
     -- Move platform back up
     local originalZ = currentCoords.z
-    MovePlatformVertically(platform, originalZ, liftConfig.movement.speed, nil)
+    MovePlatformVertically(platform, originalZ, liftConfig.movement.speed)
     
     -- Wait for platform to return
     Wait(movementTime)
@@ -227,7 +293,7 @@ end)
 RegisterNetEvent('chilllixhub-parkinglift:client:syncMovement', function(liftId, currentCoords, targetZ, speed)
     local platform = lifts[liftId]
     if DoesEntityExist(platform) then
-        MovePlatformVertically(platform, targetZ, speed, nil)
+        MovePlatformVertically(platform, targetZ, speed)
     end
 end)
 
@@ -240,6 +306,9 @@ CreateThread(function()
     
     -- Create all lift platforms
     for liftId, liftConfig in pairs(Config.Lifts) do
+        -- Validate configuration (will show errors but still create lift for debugging)
+        ValidateLiftConfig(liftId, liftConfig)
+        
         lifts[liftId] = CreatePlatform(liftId, liftConfig)
         isLiftActive[liftId] = false
         DebugPrint('Lift', liftId, 'initialized')

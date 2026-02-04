@@ -29,8 +29,10 @@ Config.Lifts = {
         },
         
         -- Vehicle detection zone (on platform)
+        -- IMPORTANT: These coords MUST match the platform coords above!
+        -- The detection zone should be centered on the platform
         vehicleZone = {
-            coords = vector3(-160.0, -583.0, 32.42),
+            coords = vector3(-160.0, -583.0, 32.42), -- MUST match platform.coords
             radius = 4.0, -- Detection radius for vehicles
         },
     },
@@ -55,5 +57,6 @@ Config.Debug = false
 
 -- Technical settings (advanced users)
 Config.MovementTimeMultiplier = 10 -- Multiplier for calculating movement duration based on speed
-Config.VehiclePlatformOffset = 1.0 -- Vertical offset for vehicles on platform (in units)
+Config.VehiclePlatformOffset = 1.0 -- DEPRECATED: No longer used with attachment system (kept for compatibility)
+Config.DisableVehicleCollisionDuringMovement = true -- Attach vehicles to platform and disable collision for smooth underground movement
 Config.InitializationDelay = 1000 -- Delay before initializing lifts (milliseconds)
