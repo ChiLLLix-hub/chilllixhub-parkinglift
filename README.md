@@ -63,6 +63,24 @@ Config.Lifts = {
 - **Config.InteractionKey**: Key code for interaction (default: 38 = E key)
 - **Config.Debug**: Enable debug console logging
 
+### ⚠️ Important Configuration Notes
+
+**Vehicle Detection Zone**: The `vehicleZone.coords` **MUST** match your `platform.coords`! This is the most common configuration mistake.
+
+- ✅ **Correct**: Both platform and vehicleZone at the same location
+  ```lua
+  platform = { coords = vector3(1526.5, 6343.4, 22.93) }
+  vehicleZone = { coords = vector3(1526.5, 6343.4, 22.93) }
+  ```
+
+- ❌ **Wrong**: Different coordinates will cause "No vehicle detected" errors
+  ```lua
+  platform = { coords = vector3(1526.5, 6343.4, 22.93) }
+  vehicleZone = { coords = vector3(-160.0, -583.0, 32.42) }  -- Default coords!
+  ```
+
+The script will display a **red error message** on startup if your vehicleZone is misconfigured.
+
 ## Usage
 
 ### For Players
@@ -120,7 +138,11 @@ Config.Lifts = {
 
 - **Lift not appearing**: Check coordinates in config.lua and ensure the prop model exists
 - **No interaction prompt**: Verify qb-target is installed if Config.UseTarget is true
-- **Vehicle not detected**: Increase vehicleZone radius in config
+- **"No vehicle detected on platform" error**: 
+  - **Most common cause**: Your `vehicleZone.coords` doesn't match your `platform.coords`
+  - Check the console for red error messages on startup - they will show the mismatch
+  - Solution: Update `vehicleZone.coords` to match your `platform.coords` exactly
+  - If coords are correct, try increasing `vehicleZone.radius` (default: 4.0, try 5.0-6.0)
 - **Movement too fast/slow**: Adjust movement speed in config
 
 ## Support

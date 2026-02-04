@@ -29,8 +29,10 @@ Config.Lifts = {
         },
         
         -- Vehicle detection zone (on platform)
+        -- IMPORTANT: These coords MUST match the platform coords above!
+        -- The detection zone should be centered on the platform
         vehicleZone = {
-            coords = vector3(-160.0, -583.0, 32.42),
+            coords = vector3(-160.0, -583.0, 32.42), -- MUST match platform.coords
             radius = 4.0, -- Detection radius for vehicles
         },
     },

@@ -9,6 +9,30 @@ local function DebugPrint(...)
     end
 end
 
+-- Validate lift configuration
+local function ValidateLiftConfig(liftId, liftConfig)
+    -- Check if vehicleZone coords match platform coords
+    local platformCoords = liftConfig.platform.coords
+    local vehicleZoneCoords = liftConfig.vehicleZone.coords
+    
+    local distance = #(vector3(platformCoords.x, platformCoords.y, platformCoords.z) - 
+                       vector3(vehicleZoneCoords.x, vehicleZoneCoords.y, vehicleZoneCoords.z))
+    
+    -- If coords are more than 10 units apart, show warning
+    if distance > 10.0 then
+        print('^1[Parking Lift ERROR]^7 Lift ' .. liftId .. ': vehicleZone.coords is ' .. 
+              string.format('%.1f', distance) .. ' units away from platform.coords!')
+        print('^1[Parking Lift ERROR]^7 Platform coords: ' .. 
+              string.format('%.1f, %.1f, %.1f', platformCoords.x, platformCoords.y, platformCoords.z))
+        print('^1[Parking Lift ERROR]^7 VehicleZone coords: ' .. 
+              string.format('%.1f, %.1f, %.1f', vehicleZoneCoords.x, vehicleZoneCoords.y, vehicleZoneCoords.z))
+        print('^1[Parking Lift ERROR]^7 Vehicle detection will NOT work! Update vehicleZone.coords to match platform.coords')
+        return false
+    end
+    
+    return true
+end
+
 -- Create platform object
 local function CreatePlatform(liftId, liftConfig)
     local model = GetHashKey(liftConfig.platform.model)
@@ -240,6 +264,9 @@ CreateThread(function()
     
     -- Create all lift platforms
     for liftId, liftConfig in pairs(Config.Lifts) do
+        -- Validate configuration
+        ValidateLiftConfig(liftId, liftConfig)
+        
         lifts[liftId] = CreatePlatform(liftId, liftConfig)
         isLiftActive[liftId] = false
         DebugPrint('Lift', liftId, 'initialized')
