@@ -111,13 +111,10 @@ local function ActivateLift(liftId, liftConfig)
     -- Get vehicles on platform
     local vehicles = GetVehiclesOnPlatform(liftConfig)
     
-    -- TODO: Temporarily disabled vehicle detection requirement to allow lift operation without vehicles
-    -- Re-enable this check once testing/development phase is complete
-    -- Original check: Prevent lift activation if no vehicle is on the platform
-    -- if #vehicles == 0 then
-    --     QBCore.Functions.Notify(Config.Labels.noVehicle, 'error')
-    --     return
-    -- end
+    if #vehicles == 0 then
+        QBCore.Functions.Notify(Config.Labels.noVehicle, 'error')
+        return
+    end
     
     isLiftActive[liftId] = true
     DebugPrint('Activating lift', liftId, 'with', #vehicles, 'vehicles')
