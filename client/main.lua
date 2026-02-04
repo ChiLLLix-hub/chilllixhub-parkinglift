@@ -151,10 +151,12 @@ local function ActivateLift(liftId, liftConfig)
                 local vehCoords = GetEntityCoords(vehicle)
                 local platformCoords = GetEntityCoords(platform)
                 
-                -- Calculate pure relative position offset (no additional adjustment needed)
+                -- Calculate pure relative position offset (maintains current position)
+                -- Since vehicle is already on the platform when detected, this preserves that relationship
                 local offsetX = vehCoords.x - platformCoords.x
                 local offsetY = vehCoords.y - platformCoords.y
                 local offsetZ = vehCoords.z - platformCoords.z
+                -- Note: Config.VehiclePlatformOffset is not needed here as we preserve the existing position
                 
                 -- AttachEntityToEntity parameters:
                 -- vehicle: entity to attach, platform: attach to, 0: bone (unused for props)
@@ -190,7 +192,7 @@ local function ActivateLift(liftId, liftConfig)
         if DoesEntityExist(vehicle) then
             -- Detach and restore vehicle state before deletion
             if Config.DisableVehicleCollisionDuringMovement then
-                -- Detach from platform
+                -- Detach from platform (true: reset collision, true: apply velocity on detach)
                 DetachEntity(vehicle, true, true)
                 -- Re-enable collision (both parameters true to ensure full collision restoration)
                 SetEntityCollision(vehicle, true, true)
