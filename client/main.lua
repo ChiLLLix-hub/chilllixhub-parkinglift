@@ -158,12 +158,17 @@ local function ActivateLift(liftId, liftConfig)
                 local offsetZ = vehCoords.z - platformCoords.z
                 -- Note: Config.VehiclePlatformOffset is not needed here as we preserve the existing position
                 
-                -- AttachEntityToEntity parameters:
-                -- vehicle: entity to attach, platform: attach to, 0: bone (unused for props)
-                -- offsetX/Y/Z: relative position, 0.0/0.0/0.0: no rotation
-                -- false: not physical, false: no collision override (already disabled)
-                -- true: soft pinning (maintains relative position smoothly)
-                -- false: fixed rotation off, 0: entity type, true: ensure proper attachment
+                -- AttachEntityToEntity native parameters (15 total):
+                -- 1-2: vehicle (attach), platform (attach to)
+                -- 3: boneIndex (0 for props)
+                -- 4-6: position offset (x,y,z)
+                -- 7-9: rotation offset (x,y,z) - all 0.0 for no rotation
+                -- 10: p9 (unknown) - false
+                -- 11: useSoftPinning - false (we want rigid attachment)
+                -- 12: collision - true (entity has collision behavior)
+                -- 13: isPed - false (it's a vehicle)
+                -- 14: vertexIndex - 0 (not used)
+                -- 15: fixedRot - true (maintain vehicle's orientation)
                 AttachEntityToEntity(vehicle, platform, 0, offsetX, offsetY, offsetZ, 0.0, 0.0, 0.0, false, false, true, false, 0, true)
                 DebugPrint('Attached vehicle to platform:', vehicle)
             end
@@ -192,8 +197,8 @@ local function ActivateLift(liftId, liftConfig)
         if DoesEntityExist(vehicle) then
             -- Detach and restore vehicle state before deletion
             if Config.DisableVehicleCollisionDuringMovement then
-                -- Detach from platform (true: reset collision, true: apply velocity on detach)
-                DetachEntity(vehicle, true, true)
+                -- Detach from platform (true: reset collision, false: don't apply velocity - vehicle is about to be deleted)
+                DetachEntity(vehicle, true, false)
                 -- Re-enable collision (both parameters true to ensure full collision restoration)
                 SetEntityCollision(vehicle, true, true)
             end
