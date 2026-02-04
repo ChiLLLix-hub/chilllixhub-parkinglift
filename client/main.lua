@@ -148,7 +148,7 @@ local function ActivateLift(liftId, liftConfig)
     DebugPrint('Activating lift', liftId, 'with', #vehicles, 'vehicles')
     
     -- Prepare vehicles for underground movement (prevent slingshot effect)
-    -- Note: Vehicles will be deleted after reaching the bottom, so collision/freeze states don't need restoration
+    -- Vehicles are frozen and collision-disabled during movement, then restored before deletion
     if Config.DisableVehicleCollisionDuringMovement then
         for _, vehicle in ipairs(vehicles) do
             if DoesEntityExist(vehicle) then
@@ -183,7 +183,9 @@ local function ActivateLift(liftId, liftConfig)
         if DoesEntityExist(vehicle) then
             -- Restore vehicle state before deletion (safety measure in case deletion fails)
             if Config.DisableVehicleCollisionDuringMovement then
+                -- Re-enable collision (both parameters true to ensure full collision restoration)
                 SetEntityCollision(vehicle, true, true)
+                -- Unfreeze the vehicle
                 FreezeEntityPosition(vehicle, false)
             end
             
