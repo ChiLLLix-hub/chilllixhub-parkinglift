@@ -83,7 +83,7 @@ local function GetVehiclesOnPlatform(liftConfig)
 end
 
 -- Smooth movement function
-local function MovePlatformVertically(platform, targetZ, speed, vehicles, attachedVehicles)
+local function MovePlatformVertically(platform, targetZ, speed)
     local currentCoords = GetEntityCoords(platform)
     local direction = targetZ > currentCoords.z and 1 or -1
     local isMovingDown = direction == -1
@@ -107,7 +107,7 @@ local function MovePlatformVertically(platform, targetZ, speed, vehicles, attach
             
             SetEntityCoords(platform, coords.x, coords.y, newZ, false, false, false, false)
             
-            -- Note: Vehicles are now attached to platform, so they move automatically
+            -- Note: Vehicles are attached to platform and move automatically
             -- No need to manually update vehicle coords
             
             Wait(0)
@@ -171,7 +171,7 @@ local function ActivateLift(liftId, liftConfig)
                        liftConfig.movement.speed, liftConfig.movement.returnDelay)
     
     -- Move platform down (attached vehicles will move automatically)
-    MovePlatformVertically(platform, targetZ, liftConfig.movement.speed, vehicles, true)
+    MovePlatformVertically(platform, targetZ, liftConfig.movement.speed)
     
     -- Wait for platform to reach bottom (calculate based on distance and speed)
     local movementTime = (liftConfig.movement.downDistance / liftConfig.movement.speed) * Config.MovementTimeMultiplier
@@ -199,7 +199,7 @@ local function ActivateLift(liftId, liftConfig)
     
     -- Move platform back up
     local originalZ = currentCoords.z
-    MovePlatformVertically(platform, originalZ, liftConfig.movement.speed, nil)
+    MovePlatformVertically(platform, originalZ, liftConfig.movement.speed)
     
     -- Wait for platform to return
     Wait(movementTime)
@@ -276,7 +276,7 @@ end)
 RegisterNetEvent('chilllixhub-parkinglift:client:syncMovement', function(liftId, currentCoords, targetZ, speed)
     local platform = lifts[liftId]
     if DoesEntityExist(platform) then
-        MovePlatformVertically(platform, targetZ, speed, nil)
+        MovePlatformVertically(platform, targetZ, speed)
     end
 end)
 
